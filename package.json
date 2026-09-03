@@ -20,6 +20,6 @@
     "typescript": "^7.0.2"
   },
   "dependencies": {
-    "@hajewski/latticedb": "^0.15.0"
+    "kuzu": "^0.11.3"
   }
 }

@@ -42,7 +42,7 @@ The application should eventually:
 
 - index local documents
 - extract and chunk text
-- store documents/chunks in LatticeDB
+- store documents/chunks in Kuzu
 - support full-text search
 - support semantic/vector search
 - combine keyword and semantic search
@@ -54,17 +54,18 @@ The application should eventually:
 - Node.js
 - TypeScript
 - React
-- LatticeDB
+- Kuzu
 
 Do not introduce PostgreSQL, Elasticsearch, or another database.
-The purpose of this project is to learn LatticeDB.
+The purpose of this project is to learn Kuzu. Kuzu's upstream project is archived,
+but we are using the Windows-compatible Node.js package for this learning project.
 
 ## Development order
 
 Build incrementally:
 
 1. TXT/Markdown ingestion
-2. LatticeDB storage
+2. Kuzu storage
 3. Full-text search
 4. Simple React search UI
 5. PDF support
