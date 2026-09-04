@@ -32,11 +32,12 @@ async function main(): Promise<void> {
 
         const insert = await connection.prepare(`
             MERGE (d:Document {path: $path}) ON CREATE SET d.extension = $extension, d.content = $content, d.characterCount = $characterCount
+            ON MATCH SET d.extension = $extension, d.content = $content, d.characterCount = $characterCount
         `);
 
         await connection.execute(insert, {path:document.path, extension:document.extension, content:document.content, characterCount:document.characterCount});
 
-        console.log("Document inserted", document.path);
+        console.log("Document inserted", document.characterCount);
 
     } catch (error) {
         throw error;
