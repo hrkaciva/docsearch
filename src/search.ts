@@ -1,34 +1,24 @@
 import {Connection, Database, QueryResult} from "kuzu";
 
-const searchWord = process.argv[2];
-
-if (!searchWord) {
-  console.error("No search term provided");
-  process.exit(1);
-}
-
-const db = new Database("./data/doksearch");
-const connection = new Connection(db);
-
-async function main(): Promise<void> {
-
+export async function search(term: string) : Promise<unknown[]> {
+    //create DB and connection
+    const db = new Database("./data/doksearch");
+    const connection = new Connection(db);
     try {
+        //prepare and execute the existing query
         const query = await connection.prepare(`CALL QUERY_FTS_INDEX('Document', 'document_content_fts', $term, top := 10) RETURN node.path AS path, score ORDER BY score DESC`);
         const result = await connection.execute(
-            query, {term: searchWord}
+            query, {term: term}
         );
-        if (result instanceof QueryResult) {
-            console.log(await result.getAll());
-        }
 
-    } catch (error) {
-        console.error(error);
-    } finally {
+        //return the results
+        if (!(result instanceof QueryResult)) {
+            throw new Error("Expected QueryResult");
+        }
+        return await result.getAll();
+    }
+    finally {
         await connection.close();
         await db.close();
     }
 }
-main().catch((error: unknown) => {
-    console.error(error);
-    process.exitCode = 1;
-})
