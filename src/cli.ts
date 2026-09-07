@@ -2,6 +2,7 @@ import * as process from "node:process";
 import * as path from "node:path";
 import {Connection, Database} from "kuzu";
 import {extractText} from "./extract-text";
+import {embedText} from "./embed";
 
 const file = process.argv[2];
 const db = new Database("./data/doksearch");
@@ -20,22 +21,25 @@ async function main(): Promise<void> {
             content: data,
             characterCount: data.length,
         }
+        const embedding = await embedText(data);
+
         await connection.query(`
             CREATE NODE TABLE IF NOT EXISTS Document(
                 path STRING,
                 extension STRING,
                 content STRING,
                 characterCount INT64,
+                embedding FLOAT[384],
                 PRIMARY KEY(path)
             )
         `);
 
         const insert = await connection.prepare(`
-            MERGE (d:Document {path: $path}) ON CREATE SET d.extension = $extension, d.content = $content, d.characterCount = $characterCount
-            ON MATCH SET d.extension = $extension, d.content = $content, d.characterCount = $characterCount
+            MERGE (d:Document {path: $path}) ON CREATE SET d.extension = $extension, d.content = $content, d.characterCount = $characterCount, d.embedding = $embedding
+            ON MATCH SET d.extension = $extension, d.content = $content, d.characterCount = $characterCount, d.embedding = $embedding
         `);
 
-        await connection.execute(insert, {path:document.path, extension:document.extension, content:document.content, characterCount:document.characterCount});
+        await connection.execute(insert, {path:document.path, extension:document.extension, content:document.content, characterCount:document.characterCount, embedding:embedding});
 
         console.log("Document inserted", document.characterCount);
 

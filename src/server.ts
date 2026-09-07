@@ -1,5 +1,6 @@
 import {createServer, ServerResponse} from "node:http";
 import { search } from "./search";
+import {vectorSearch} from "./vector-search";
 
 
 function sendJson(
@@ -28,7 +29,7 @@ const server = createServer(async (request, response) => {
     }
 
     try {
-        const results = await search(query);
+        const results = await vectorSearch(query);
         sendJson(response, 200, results);
     } catch (error) {
         sendJson(response, 500, {error: "Internal Server Error"});

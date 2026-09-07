@@ -10,7 +10,8 @@
     "start": "node dist/cli.js",
     "test": "node --test",
     "frontend": "vite --config frontend/vite.config.ts",
-    "server": "tsx src/server.ts"
+    "server": "tsx src/server.ts",
+    "create-vector-index": "tsx src/create-vector-index.ts"
   },
   "keywords": [],
   "author": "",
