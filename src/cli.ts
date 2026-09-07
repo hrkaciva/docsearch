@@ -1,7 +1,7 @@
 import * as process from "node:process";
-import {readFileSync} from "node:fs";
 import * as path from "node:path";
 import {Connection, Database} from "kuzu";
+import {extractText} from "./extract-text";
 
 const file = process.argv[2];
 const db = new Database("./data/doksearch");
@@ -13,7 +13,7 @@ if(file === undefined) {
 }
 async function main(): Promise<void> {
     try {
-        const data =  readFileSync(file, "utf-8");
+        const data =  await extractText(file);
         const document: Document = {
             path: file,
             extension: path.extname(file),
