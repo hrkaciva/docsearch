@@ -62,7 +62,7 @@ export default function App() {
             {!isLoading && !error && results.length > 0 && (
                 <ul>
                     {results.map((result) => (
-                        <li key={result.path}>{result.path} - {result.distance}</li>
+                        <li key={result.path}>{result.path} - {result.score}</li>
                     ))}
                 </ul>
             )}
@@ -72,5 +72,5 @@ export default function App() {
 
 type SearchResult = {
     path: string;
-    distance: number;
+    score: number;
 }

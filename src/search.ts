@@ -1,6 +1,6 @@
 import {Connection, Database, QueryResult} from "kuzu";
 
-export async function search(term: string) : Promise<unknown[]> {
+export async function search(term: string) : Promise<{path: string, score: number}[]> {
     //create DB and connection
     const db = new Database("./data/doksearch");
     const connection = new Connection(db);
@@ -15,7 +15,8 @@ export async function search(term: string) : Promise<unknown[]> {
         if (!(result instanceof QueryResult)) {
             throw new Error("Expected QueryResult");
         }
-        return await result.getAll();
+        const rows = await result.getAll();
+        return rows.map((row) => ({path: String(row.path), score: Number(row.score)}));
     }
     finally {
         await connection.close();

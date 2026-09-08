@@ -1,7 +1,7 @@
 import {embedText} from "./embed";
 import {Connection, Database, QueryResult} from "kuzu";
 
-export async function vectorSearch(term:string): Promise<unknown[]> {
+export async function vectorSearch(term:string): Promise<{path: string, distance: number}[]> {
     const db = new Database("./data/doksearch");
     const connection = new Connection(db);
     try {
@@ -16,7 +16,8 @@ export async function vectorSearch(term:string): Promise<unknown[]> {
         if (!(result instanceof QueryResult)) {
             throw new Error("Expected QueryResult");
         }
-        return await result.getAll();
+        const rows = await result.getAll();
+        return rows.map((row) => ({path: String(row.path), distance: Number(row.distance)}));
     } finally {
         await connection.close();
         await db.close();
