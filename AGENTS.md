@@ -21,6 +21,14 @@ Act as a mentor/pair programmer rather than an autonomous coding agent.
 - Speak simply and avoid unnecessary technical jargon. Explain one concept at a time,
   define unfamiliar terms, and use small examples when a concept is difficult.
 
+## Communication style
+
+- All models working on this project should communicate in simple, clear language.
+- Assume I am still learning; do not assume I understand advanced terminology.
+- Explain unfamiliar words before using them repeatedly.
+- Prefer short explanations and small examples over dense technical descriptions.
+- Check my understanding when a concept is especially important or difficult.
+
 ## Learning workflow
 
 For each feature:
@@ -50,6 +58,9 @@ The application should eventually:
 - combine keyword and semantic search
 - model relationships between documents/topics
 - eventually support RAG with an LLM
+
+The learner is not yet familiar with graph-oriented database concepts. Explain
+graph concepts clearly and incrementally before asking for implementation.
 
 ## Technology
 
