@@ -19,10 +19,11 @@ if(topicName === undefined) {
 }
 async function main(): Promise<void> {
     try {
-        const data =  await extractText(file);
+        const filePath = path.resolve(file);
+        const data =  await extractText(filePath);
         const document: Document = {
-            path: file,
-            extension: path.extname(file),
+            path: filePath,
+            extension: path.extname(filePath),
             content: data,
             characterCount: data.length,
         }

@@ -4,6 +4,7 @@ import type {SyntheticEvent} from "react";
 export default function App() {
     const [searchTerm, setSearchTerm] = useState("");
     const [results, setResults] = useState<SearchResult[]>([]);
+    const [relatedDocuments, setRelatedDocuments] = useState<Record<string, RelatedDocument[]>>({});
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [hasSearched, setHasSearched] = useState(false);
@@ -22,6 +23,7 @@ export default function App() {
         setIsLoading(true);
         setError(null);
         setResults([]);
+        setRelatedDocuments({});
         setHasSearched(true);
 
         try {
@@ -29,8 +31,24 @@ export default function App() {
             if(!response.ok) {
                 throw new Error(`Search failed: ${response.status}`);
             }
-            const searchResult = await response.json();
-            setResults(searchResult);
+            const searchResults: SearchResult[] = await response.json();
+            setResults(searchResults);
+
+            const relatedEntries: [string, RelatedDocument[]][] = [];
+            for (const result of searchResults) {
+                const relatedResponse = await fetch(
+                    `/api/documents/related?path=${encodeURIComponent(result.path)}`,
+                );
+
+                if (!relatedResponse.ok) {
+                    throw new Error(`Related document lookup failed: ${relatedResponse.status}`);
+                }
+
+                const documents: RelatedDocument[] = await relatedResponse.json();
+                relatedEntries.push([result.path, documents]);
+            }
+
+            setRelatedDocuments(Object.fromEntries(relatedEntries));
         }  catch (error) {
             console.error(error);
             setError("Could not complete the search. Please try again.");
@@ -62,7 +80,21 @@ export default function App() {
             {!isLoading && !error && results.length > 0 && (
                 <ul>
                     {results.map((result) => (
-                        <li key={result.path}>{result.path} - {result.score}</li>
+                        <li key={result.path}>
+                            <div>{result.path} - {result.score}</div>
+                            {relatedDocuments[result.path]?.length > 0 && (
+                                <div>
+                                    <strong>Related documents</strong>
+                                    <ul>
+                                        {relatedDocuments[result.path].map((relatedDocument) => (
+                                            <li key={`${relatedDocument.path}-${relatedDocument.sharedTopic}`}>
+                                                {relatedDocument.path} (shared topic: {relatedDocument.sharedTopic})
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            )}
+                        </li>
                     ))}
                 </ul>
             )}
@@ -73,4 +105,9 @@ export default function App() {
 type SearchResult = {
     path: string;
     score: number;
+}
+
+type RelatedDocument = {
+    path: string;
+    sharedTopic: string;
 }

@@ -2,6 +2,7 @@ import {createServer, ServerResponse} from "node:http";
 import { search } from "./search";
 import {vectorSearch} from "./vector-search";
 import {combineResults} from "./hybrid-search";
+import {findRelatedDocuments} from "./related_documents";
 
 
 function sendJson(
@@ -17,7 +18,28 @@ function sendJson(
 const server = createServer(async (request, response) => {
     const url = new URL(request.url ?? "/", "http://localhost");
 
-    if(request.method !== "GET" || url.pathname !== "/api/search") {
+    if(request.method !== "GET" ) {
+        sendJson(response, 404, {error: "Not Found"});
+        return;
+    }
+
+    if(url.pathname === "/api/documents/related") {
+        const documentPath = url.searchParams.get("path");
+        if(!documentPath) {
+            sendJson(response, 400, {error: "Missing path parameter"});
+            return;
+        }
+        try {
+            const relatedDocuments = await findRelatedDocuments(documentPath);
+            sendJson(response, 200, relatedDocuments);
+        } catch (error) {
+            console.error(error);
+            sendJson(response, 500, {error: "Internal Server Error"});
+        }
+        return;
+    }
+
+    if(url.pathname !== "/api/search") {
         sendJson(response, 404, {error: "Not Found"});
         return;
     }
