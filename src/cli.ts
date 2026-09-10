@@ -5,7 +5,7 @@ import {extractText} from "./extract-text";
 import {embedText} from "./embed";
 
 const file = process.argv[2];
-const topicName = process.argv[3];
+const topicNames = process.argv.slice(3);
 const db = new Database("./data/doksearch");
 const connection = new Connection(db);
 
@@ -13,7 +13,7 @@ if(file === undefined) {
     console.error("No file provided");
     process.exit(1);
 }
-if(topicName === undefined) {
+if(topicNames.length === 0) {
     console.error("No topic name provided");
     process.exit(1);
 }
@@ -62,11 +62,9 @@ async function main(): Promise<void> {
 
         await connection.execute(insert, {path:document.path, extension:document.extension, content:document.content, characterCount:document.characterCount, embedding:embedding});
 
-
         const topic = await connection.prepare(`
             MERGE (t:Topic {name: $name})
         `);
-        await connection.execute(topic, {name: topicName});
 
         const relationship = await connection.prepare(`
             MATCH (d: Document {path: $path})
@@ -74,14 +72,17 @@ async function main(): Promise<void> {
             MERGE (d)-[:ABOUT]->(t)
         `);
 
-        await connection.execute(relationship, {
-            path: document.path,
-            name: topicName,
-        })
+        for (const topicName of topicNames) {
+            await connection.execute(topic, {name: topicName});
+            await connection.execute(relationship, {
+                path: document.path,
+                name: topicName,
+            })
+        }
 
-        const documentByTopic = await connection.prepare(`MATCH (d:Document)-[:ABOUT]->(t:Topic) WHERE t.name=$name RETURN d.path AS path`);
+        const topicByDocument = await connection.prepare(`MATCH (d:Document {path:$path})-[:ABOUT]->(t:Topic) RETURN t.name AS topic`);
 
-        const result = await connection.execute(documentByTopic, {name: topicName});
+        const result = await connection.execute(topicByDocument, {path: document.path});
         if (result instanceof QueryResult) {
             console.log(await result.getAll());
         }
