@@ -1,6 +1,6 @@
 import {Connection, Database, QueryResult} from "kuzu";
 
-export async function findRelatedDocuments(documentPath: string): Promise<{path: string, sharedTopic: string}[]> {
+export async function findRelatedDocuments(documentPath: string): Promise<{path: string; sharedTopics: string[], sharedTopicCount: number}[]> {
     const db = new Database("./data/doksearch");
     const connection = new Connection(db);
     try {
@@ -12,7 +12,22 @@ export async function findRelatedDocuments(documentPath: string): Promise<{path:
         const relatedResult = await connection.execute(relatedDocuments, {path: documentPath});
         if (relatedResult instanceof QueryResult) {
             const rows = await relatedResult.getAll();
-            return rows.map((row) => ({path: String(row.path), sharedTopic: String(row.sharedTopic)}));
+            const result = rows.reduce<Map<string, string[]>>((groups, row) => {
+                const path = String(row.path);
+                const topic = String(row.sharedTopic);
+                const sharedTopics = groups.get(path) ?? [];
+
+                sharedTopics.push(topic);
+                groups.set(path, sharedTopics);
+
+                return groups;
+            }, new Map());
+
+            return Array.from(result.entries()).map(([path, sharedTopics]) => ({
+                path,
+                sharedTopics,
+                sharedTopicCount: sharedTopics.length,
+            }));
         }
         return [];
     }

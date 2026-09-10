@@ -87,8 +87,11 @@ export default function App() {
                                     <strong>Related documents</strong>
                                     <ul>
                                         {relatedDocuments[result.path].map((relatedDocument) => (
-                                            <li key={`${relatedDocument.path}-${relatedDocument.sharedTopic}`}>
-                                                {relatedDocument.path} (shared topic: {relatedDocument.sharedTopic})
+                                            <li key={`${relatedDocument.path}`}>
+                                                {relatedDocument.path} (
+                                                {relatedDocument.sharedTopicCount} shared topics:{" "}
+                                                {relatedDocument.sharedTopics.join(", ")}
+                                                )
                                             </li>
                                         ))}
                                     </ul>
@@ -109,5 +112,6 @@ type SearchResult = {
 
 type RelatedDocument = {
     path: string;
-    sharedTopic: string;
+    sharedTopics: string[];
+    sharedTopicCount: number;
 }
