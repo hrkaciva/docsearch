@@ -6,7 +6,7 @@ const connection = new Connection(db);
 async function main(): Promise<void> {
     try {
         await connection.query(`                                                                                                                                                                                                       
-         CALL CREATE_FTS_INDEX('Document', 'document_content_fts', ['content'])                                                                                                                                                     
+         CALL CREATE_FTS_INDEX('Chunk', 'chunk_content_fts', ['content'])
      `);
         console.log("FT index created");
 

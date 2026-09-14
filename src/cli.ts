@@ -3,6 +3,7 @@ import * as path from "node:path";
 import {Connection, Database, QueryResult} from "kuzu";
 import {extractText} from "./extract-text";
 import {embedText} from "./embed";
+import {chunkText} from "./chunk-text";
 
 const file = process.argv[2];
 const topicNames = process.argv.slice(3);
@@ -28,6 +29,7 @@ async function main(): Promise<void> {
             characterCount: data.length,
         }
         const embedding = await embedText(data);
+        const chunks = chunkText(data, 500);
 
         await connection.query(`
             CREATE NODE TABLE IF NOT EXISTS Document(
@@ -43,6 +45,15 @@ async function main(): Promise<void> {
         await connection.query(`CREATE NODE TABLE IF NOT EXISTS Topic(name STRING, PRIMARY KEY(name))`);
 
         await connection.query(`CREATE REL TABLE IF NOT EXISTS ABOUT(FROM Document TO Topic)`);
+
+        await connection.query(`CREATE NODE TABLE IF NOT EXISTS Chunk(
+            id STRING,
+            position INT64,
+            content STRING,
+            characterCount INT64,
+            PRIMARY KEY(id)
+        )`);
+        await connection.query(`CREATE REL TABLE IF NOT EXISTS CONTAINS(FROM Document TO Chunk)`);
 
         const deleteExisting = await connection.prepare(`
             MATCH (d:Document {path: $path})
@@ -61,6 +72,27 @@ async function main(): Promise<void> {
         `);
 
         await connection.execute(insert, {path:document.path, extension:document.extension, content:document.content, characterCount:document.characterCount, embedding:embedding});
+
+        const insertChunk = await connection.prepare(`
+            MATCH (d:Document {path: $path})
+            CREATE (c:Chunk {
+                id: $id,
+                position: $position,
+                content: $content,
+                characterCount: $characterCount
+            })
+            CREATE (d)-[:CONTAINS]->(c)
+        `);
+
+        for (const [index, content] of chunks.entries()) {
+            await connection.execute(insertChunk, {
+                path: document.path,
+                id: `${document.path}#${index}`,
+                position: index,
+                content,
+                characterCount: content.length,
+            });
+        }
 
         const topic = await connection.prepare(`
             MERGE (t:Topic {name: $name})
@@ -83,6 +115,7 @@ async function main(): Promise<void> {
         const topicByDocument = await connection.prepare(`MATCH (d:Document {path:$path})-[:ABOUT]->(t:Topic) RETURN t.name AS topic`);
 
         const result = await connection.execute(topicByDocument, {path: document.path});
+
         if (result instanceof QueryResult) {
             console.log(await result.getAll());
         }
@@ -120,4 +153,3 @@ type Document = {
     content: string;
     characterCount: number;
 };
-

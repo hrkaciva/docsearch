@@ -80,8 +80,13 @@ export default function App() {
             {!isLoading && !error && results.length > 0 && (
                 <ul>
                     {results.map((result) => (
-                        <li key={result.path}>
+                        <li key={result.chunkId ?? result.path}>
                             <div>{result.path} - {result.score}</div>
+                            {result.content && (
+                                <p>
+                                    Chunk {result.position}: {result.content}
+                                </p>
+                            )}
                             {relatedDocuments[result.path]?.length > 0 && (
                                 <div>
                                     <strong>Related documents</strong>
@@ -108,6 +113,9 @@ export default function App() {
 type SearchResult = {
     path: string;
     score: number;
+    chunkId?: string;
+    position?: number;
+    content?: string;
 }
 
 type RelatedDocument = {
