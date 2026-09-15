@@ -1,8 +1,11 @@
 import {createServer, ServerResponse} from "node:http";
-import { search } from "./search";
-import {vectorSearch} from "./vector-search";
-import {combineResults} from "./hybrid-search";
-import {findRelatedDocuments} from "./related_documents";
+import {search} from "./search/keyword-search";
+import {vectorSearch} from "./search/vector-search";
+import {combineResults} from "./search/hybrid-search";
+import {findRelatedDocuments} from "./search/related-documents";
+import {getContextForQuestion} from "./rag/get-context";
+import {buildPrompt} from "./rag/build-prompt";
+import {generateAnswer} from "./rag/generate-answer";
 
 
 function sendJson(
@@ -20,6 +23,25 @@ const server = createServer(async (request, response) => {
 
     if(request.method !== "GET" ) {
         sendJson(response, 404, {error: "Not Found"});
+        return;
+    }
+
+    if(url.pathname === "/api/ask") {
+        const question = url.searchParams.get("q");
+        if(!question) {
+            sendJson(response, 400, {error: "Missing query parameter"});
+            return;
+        }
+
+        try {
+            const context = await getContextForQuestion(question);
+            const prompt = buildPrompt(question, context);
+            const answer = await generateAnswer(prompt);
+            sendJson(response, 200, {answer});
+        } catch (error) {
+            console.error(error);
+            sendJson(response, 500, {error: "Internal Server Error"});
+        }
         return;
     }
 

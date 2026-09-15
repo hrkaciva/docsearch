@@ -1,9 +1,9 @@
 import * as process from "node:process";
 import * as path from "node:path";
 import {Connection, Database, QueryResult} from "kuzu";
-import {extractText} from "./extract-text";
-import {embedText} from "./embed";
-import {chunkText} from "./chunk-text";
+import {extractText} from "./ingestion/extract-text";
+import {embedText} from "./ingestion/embed";
+import {chunkText} from "./ingestion/chunk-text";
 
 const file = process.argv[2];
 const topicNames = process.argv.slice(3);

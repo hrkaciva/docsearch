@@ -8,10 +8,11 @@
     "typecheck": "tsc --noEmit",
     "build": "tsc",
     "start": "node dist/cli.js",
-    "test": "node --test",
+    "test": "npm run build && node --test dist/search/hybrid-search.test.js",
     "frontend": "vite --config frontend/vite.config.ts",
     "server": "tsx src/server.ts",
-    "create-vector-index": "tsx src/create-vector-index.ts"
+    "create-vector-index": "tsx src/database/create-vector-index.ts",
+    "create-fts-index": "tsx src/database/create-fts-index.ts"
   },
   "keywords": [],
   "author": "",
